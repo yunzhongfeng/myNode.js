@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hero - Admin</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <style>
+        .hero-list img {
+            width: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="page-header container">
+            <h1>王者荣耀 <small>英雄编辑</small></h1>
+        </div>
+    </header>
+    <div class="container hero-list">
+        <form action="/add" method="POST" enctype="multipart/form-data">
+            <table class="table table-hover">
+                <input type="hidden" name="id" value="{{id}}">
+                <tr>
+                    <td>姓名：</td>
+                    <td><input type="text" name="name" value="{{name}}"></td>
+                </tr>
+                <tr>
+                    <td>性别：</td>
+                    <td>
+                        {{if gender == '男'}}
+                          <input id="nan" name="gender"  value="男" type="radio" checked><label for="nan">男</label>
+                          <input name="gender" value="女" type="radio" id="nv"><label for="nv">女</label>
+                         {{else if gender == '女'}}
+                         <input id="nan" name="gender"  value="男" type="radio"><label for="nan">男</label>
+                         <input name="gender" value="女" type="radio" id="nv" checked><label for="nv">女</label>
+                        {{/if}}
+                       
+                    </td>
+                </tr>
+                <tr>
+                    <td>头像：</td>
+                    <td><img src="/images/{{img}}" alt="" id="photo" style='width:100px'>
+                    <input type="file" id="img"></td>
+                    <!-- 添加隐藏域 -->
+                    <input type="hidden" name="img" value="{{img}}">
+                     <!-- 在编辑的时候一定要存储当前图片名称，否则当后期用户没有真正的对图片进行修改的时候，那么就没有图片数据了 -->
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input type="button" id="sub" value="编辑"></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</body>
+<script src = "/js/jquery.js"></script>
+<script>
+    //绑定chenge事件上传照片和预览,用户一旦选择了文件就进行文件的上传操作
+    $('#img').on("change",function(){
+        
+        // console.log(123);
+        //上传文件用formdata对象来收集文件数据
+        var formdata = new FormData()
+        //获取文件数据
+        var file = document.querySelector('#img').files[0]
+        // 将文件数据添加到formdata对象中，这个formdata对象可以直接做为数据传递
+        formdata.append('img',file)
+        //发送ajax请求,实现文件数据的上传
+        $.ajax({
+            url:'/fileUpload',
+            type: 'post',
+            data: formdata,
+            processData: false, //告诉ajax不要处理数据，由formdata处理
+            contentType: false , //告诉ajax不要对数据进行编码处理，由formdata处理
+            dataType: 'json',
+            success: (res)=> {
+                // console.log(res)
+                if(res.code == 200){
+                    //实现图片的实时预览
+                    $('#photo').attr('src','/images/'+res.myImg)
+                    //设置图片的路径给隐藏域
+                    $('[name=img]').val(res.myImg)
+                }
+            }
+        })
+    })
+    //给编辑按钮绑定单击事件
+    $('#sub').on('click',(e)=>{
+         //阻止默认行为
+         e.preventDefault()
+         //发送ajax请求
+        $.ajax({
+            url:'/edit',
+            type: 'post',
+            data: $('form').serialize(),
+            dataType: 'json',
+            success: (res)=> {
+                console.log(res)
+                if(res.code == 200){
+                    alert(res.msg)
+                    //返回index页面
+                    location.href = '/'
+                }else {
+                    alert(res.msg)
+                }
+            }
+        })
+    })
+</script>
+</html>
